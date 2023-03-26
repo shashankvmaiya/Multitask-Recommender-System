@@ -139,9 +139,8 @@ class MultiTaskNet(nn.Module):
         Q: ScaledEmbedding layer for items
             nn.Embedding of shape (num_items, embedding_dim)
         """
-        U = Q = None
-        ### START CODE HERE ###
-        ### END CODE HERE ###
+        U = ScaledEmbedding(num_embeddings=num_users, embedding_dim=embedding_dim)
+        Q = ScaledEmbedding(num_embeddings=num_items, embedding_dim=embedding_dim)
         return U, Q
     
     def init_separate_user_and_item_embeddings(self, num_users, num_items, embedding_dim):
@@ -173,9 +172,10 @@ class MultiTaskNet(nn.Module):
         Q_fact: second ScaledEmbedding layer for items
             nn.Embedding of shape (num_items, embedding_dim)
         """
-        U_reg = Q_reg = U_fact = Q_fact = None
-        ### START CODE HERE ###
-        ### END CODE HERE ###
+        U_reg = ScaledEmbedding(num_embeddings=num_users, embedding_dim=embedding_dim)
+        Q_reg = ScaledEmbedding(num_embeddings=num_items, embedding_dim=embedding_dim)
+        U_fact = ScaledEmbedding(num_embeddings=num_users, embedding_dim=embedding_dim)
+        Q_fact = ScaledEmbedding(num_embeddings=num_items, embedding_dim=embedding_dim)
         return U_reg, Q_reg, U_fact, Q_fact
     
     def init_user_and_item_bias(self, num_users, num_items):
@@ -198,9 +198,8 @@ class MultiTaskNet(nn.Module):
         B: ZeroEmbedding layer for items
             nn.Embedding of shape (num_items, 1)
         """
-        A = B = None
-        ### START CODE HERE ###
-        ### END CODE HERE ###
+        A = ZeroEmbedding(num_embeddings=num_users, embedding_dim=1)
+        B = ZeroEmbedding(num_embeddings=num_items, embedding_dim=1)
         return A, B
     
     def init_mlp_layers(self, layer_sizes):
@@ -220,24 +219,37 @@ class MultiTaskNet(nn.Module):
             MLP network containing Linear and ReLU layers
         """
         mlp_layers = None
-        ### START CODE HERE ###
-        ### END CODE HERE ###
+        if len(layer_sizes) == 1:
+            mlp_layers = nn.ModuleList([nn.Linear(layer_sizes[0], 1)])
+        else:
+            mlp_layers_list = []
+            for (l1, l2) in zip(layer_sizes[:-1], layer_sizes[1:]):
+                mlp_layers_list.append(nn.Linear(l1, l2))
+                mlp_layers_list.append(nn.ReLU())
+            mlp_layers_list.append(nn.Linear(l2, 1))
+            mlp_layers = nn.ModuleList(mlp_layers_list)
         return mlp_layers
 
     def forward_with_embedding_sharing(self, user_ids, item_ids):
         """
         Please see forward() docstrings for reference
         """
-        predictions = score = None
-        ### START CODE HERE ###
-        ### END CODE HERE ###
+        predictions = torch.sum(self.U(user_ids)*self.Q(item_ids), dim=1).unsqueeze(-1) + self.A(user_ids) + self.B(item_ids)
+        score = torch.cat((self.U(user_ids), self.Q(item_ids), self.U(user_ids)*self.Q(item_ids)), 1)
+        for layer in self.mlp_layers:
+            score = layer(score)
+        predictions, score = predictions.squeeze(), score.squeeze()
         return predictions, score
     
     def forward_without_embedding_sharing(self, user_ids, item_ids):
         """
         Please see forward() docstrings for reference
         """
-        predictions = score = None
-        ### START CODE HERE ###
-        ### END CODE HERE ###
+
+        predictions = torch.sum(self.U_fact(user_ids) * self.Q_fact(item_ids), dim=1).unsqueeze(-1) + self.A(user_ids) + self.B(
+            item_ids)
+        score = torch.cat((self.U_reg(user_ids), self.Q_reg(item_ids), self.U_reg(user_ids) * self.Q_reg(item_ids)), 1)
+        for layer in self.mlp_layers:
+            score = layer(score)
+        predictions, score = predictions.squeeze(), score.squeeze()
         return predictions, score

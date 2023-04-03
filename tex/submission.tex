@@ -68,15 +68,17 @@ The training impact is seen on evaluation dataset too. Since the model parameter
 
 % <SCPD_SUBMISSION_TAG>_3c
 \begin{answer}
-From the training loss curve, the initial MSE = 13 and the factorization loss = 0.5. The model tries to reduce the joint loss = $\lambda_{LF}*$Factorization loss + $\lambda_R$*MSE. 
+From the training loss curve, the initial MSE = 13 and the factorization loss = 0.5. Clearly, the losses for both of these functions are not on the same scale. While the first task comes from a regression model with output ranging from 1 to 5, the second factorization task is a probability score which ranges from 0 to 1. 
 
-When $lambda_{LF} = 0.99$, the model prioritizes the factorization model and tries to learn the factorization task by reducing the factorization loss. 
+The model tries to reduce the joint loss = $\lambda_{LF}*$Factorization loss + $\lambda_R$*MSE. 
 
-When $lambda_{LF} = 0.5$, the model gives equal priority to both these tasks. However, since the loss of the regression task is an order of magnitude higher than the factorization task, the model prioritizes the regression task and tries to tune the parameters to reduce the MSE.
+When $\lambda_{LF} = 0.99$, the model prioritizes the factorization model and tries to learn the factorization task by reducing the factorization loss. 
 
-Thus in the Factorization task, we would expect the model with $lambda_{LF}=0.99$ to perform better. And that is precisely what we see. The Mean Reciprocal Rank (in the evaluation dataset) for $lambda_{LF}=0.99$ is higher compared to $\lambda{LF}=0.5$. The training Factorization loss too is lower for $lambda_{LF}=0.99$ compared to $\lambda{LF}=0.5$
+When $\lambda_{LF} = 0.5$, the model gives equal priority to both these tasks. However, since the loss of the regression task is an order of magnitude higher than the factorization task, the model prioritizes the regression task and tries to tune the parameters to reduce the MSE.
 
-Likewise, in the Regression task, we would expect the model with $lambda_{LF}=0.5$ to perform better. The MSE loss is lower for $lambda_{LF}=0.5$ on both evaluation and training dataset when compared to $lambda_{LF}=0.99$ 
+Thus in the Factorization task, we would expect the model with $\lambda_{LF}=0.99$ to perform better. And that is precisely what we see. The Mean Reciprocal Rank (in the evaluation dataset) for $\lambda_{LF}=0.99$ is higher compared to $\lambda_{LF}=0.5$. The training Factorization loss too is lower for $\lambda_{LF}=0.99$ compared to $\lambda_{LF}=0.5$
+
+Likewise, in the Regression task, we would expect the model with $\lambda_{LF}=0.5$ to perform better. The MSE loss is lower for $\lambda_{LF}=0.5$ on both evaluation and training dataset when compared to $\lambda_{LF}=0.99$ 
 
 
 \end{answer}
